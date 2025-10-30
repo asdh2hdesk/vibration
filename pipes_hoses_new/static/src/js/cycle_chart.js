@@ -1,7 +1,7 @@
 /** @odoo-module **/
 
 import { registry } from "@web/core/registry";
-import { Component, onMounted, useRef, onWillUnmount, onPatched } from "@odoo/owl";
+import { Component, onMounted, useRef, onWillUnmount } from "@odoo/owl";
 import { useService } from "@web/core/utils/hooks";
 
 // Small inline chart for tree view
@@ -12,10 +12,6 @@ class CycleChartWidget extends Component {
         this.chart = null;
 
         onMounted(() => {
-            this.renderChart();
-        });
-
-        onPatched(() => {
             this.renderChart();
         });
 
@@ -114,49 +110,11 @@ class CycleChartDetailWidget extends Component {
             this.renderChart();
         });
 
-        onPatched(() => {
-            this.renderChart();
-        });
-
         onWillUnmount(() => {
             if (this.chart) {
                 this.chart.destroy();
             }
         });
-    }
-
-    getFrequencyValue() {
-        const record = this.props.record;
-
-        // Try to get frequency from multiple possible sources
-        // 1. Direct field access
-        if (record.data.frequency) return parseFloat(record.data.frequency);
-        if (record.data.frequency_value) return parseFloat(record.data.frequency_value);
-        if (record.data.frequency_hz) return parseFloat(record.data.frequency_hz);
-
-        // 2. Try from parent/related field (if it's a related record)
-        if (record.data.machine_id && record.data.machine_id[0]) {
-            // This is for Many2one fields - machine_id[1] would be the name
-            const machineId = record.data.machine_id[0];
-            // You might need to access it differently based on your model structure
-        }
-
-        // 3. Check widget options
-        if (this.props.options && this.props.options.frequency) {
-            return parseFloat(this.props.options.frequency);
-        }
-
-        // 4. Try accessing from record's parent or context
-        if (record.context && record.context.default_frequency) {
-            return parseFloat(record.context.default_frequency);
-        }
-
-        // Log all available data for debugging
-        console.log('Record data keys:', Object.keys(record.data));
-        console.log('Full record data:', record.data);
-
-        // Default fallback
-        return 2;
     }
 
     renderChart() {
@@ -175,13 +133,15 @@ class CycleChartDetailWidget extends Component {
                 this.chart.destroy();
             }
 
-            // Get frequency dynamically
-            const frequencyValue = this.getFrequencyValue();
-            console.log('Using frequency:', frequencyValue);
-
+            const record = this.props.record.data;
+            const frequencyValue = parseFloat(record.frequency_value);
+            if (!frequencyValue || frequencyValue <= 0) {
+                console.warn("Invalid frequency value detected:", frequencyValue);
+                return;
+            }
             const cycleDuration = 1.0 / frequencyValue;
 
-            // Prepare data points for scatter plot with time in seconds
+
             const plannedData = data.planned.map((d, index) => {
                 const degreeIndex = [0, 45, 90, 135, 180, 225, 270, 315, 360].indexOf(d.degree);
                 const timeInCycle = (degreeIndex / 8.0) * cycleDuration;
@@ -210,7 +170,7 @@ class CycleChartDetailWidget extends Component {
                 data: {
                     datasets: [
                         {
-                            label: `Dimension (MM) - ${frequencyValue}Hz`,
+                            label: 'Dimension (MM)',
                             data: actualData,
                             borderColor: 'rgb(75, 192, 192)',
                             backgroundColor: 'rgba(75, 192, 192, 0.5)',
@@ -254,7 +214,7 @@ class CycleChartDetailWidget extends Component {
                             type: 'linear',
                             title: {
                                 display: true,
-                                text: `Time (seconds) - Frequency: ${frequencyValue}Hz`,
+                                text: 'Time (seconds)',
                                 font: {
                                     size: 14,
                                     weight: 'bold'
@@ -268,9 +228,8 @@ class CycleChartDetailWidget extends Component {
                             },
                             ticks: {
                                 callback: function(value) {
-                                    return value.toFixed(3) + 's';
-                                },
-                                maxTicksLimit: 10
+                                    return value.toFixed(2) + 's';
+                                }
                             }
                         },
                         y: {
@@ -310,7 +269,6 @@ class CycleChartDetailWidget extends Component {
             console.error('Error rendering detailed chart:', e);
         }
     }
-
     async exportChart() {
         if (!this.chart) return;
 
@@ -347,21 +305,17 @@ class CycleChartDetailWidget extends Component {
 
         try {
             const data = JSON.parse(chartData);
-            const frequencyValue = this.getFrequencyValue();
-
-            let csv = 'Type,Degree,Value (MM),Time (s)\n';
+            let csv = 'Type,Degree,Value (MM)\n';
 
             data.actual.forEach(point => {
-                const degreeIndex = [0, 45, 90, 135, 180, 225, 270, 315, 360].indexOf(point.degree);
-                const timeInCycle = (degreeIndex / 8.0) * (1.0 / frequencyValue);
-                csv += `Actual,${point.degree},${point.value},${timeInCycle.toFixed(4)}\n`;
+                csv += `Actual,${point.degree},${point.value}\n`;
             });
 
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            link.download = `cycle_data_${frequencyValue}Hz_${timestamp}.csv`;
+            link.download = `cycle_data_${timestamp}.csv`;
             link.href = url;
             link.click();
             window.URL.revokeObjectURL(url);

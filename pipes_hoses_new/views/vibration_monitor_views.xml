@@ -55,6 +55,7 @@
         <field name="model">vibration.cycle.data</field>
         <field name="arch" type="xml">
             <form string="Cycle Data" create="false" delete="false">
+                <field name="frequency_value" invisible="1"/>
                 <div>
                     <group>
                         <field name="chart_data" widget="cycle_chart_detail_widget" nolabel="1"/>
