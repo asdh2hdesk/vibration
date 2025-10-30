@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+
     <!-- Cycle Data list View with Chart and Generate Button -->
     <record id="view_vibration_cycle_data_tree" model="ir.ui.view">
         <field name="name">vibration.cycle.data.tree</field>
