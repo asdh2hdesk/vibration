@@ -10,7 +10,6 @@ action = records.write({'selected_frequency': '2hz'})
         </field>
     </record>
 
-
     <record id="action_select_3hz" model="ir.actions.server">
         <field name="name">Select 3Hz</field>
         <field name="model_id" ref="model_vibration_dashboard"/>
