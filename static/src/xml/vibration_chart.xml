@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="vibration_monitoring.VibrationChartField">
+        <div class="o_field_vibration_chart">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fa fa-line-chart me-2"/>
+                            Live Chart
+                        </h5>
+                        <div class="col-md-4">
+                                <strong>Status:</strong>
+                                <span t-if="state.isRunning" class="badge bg-success">
+                                    <i class="fa fa-circle-o-notch fa-spin"/> Live
+                                </span>
+                                <span t-if="!state.isRunning" class="badge bg-secondary">
+                                    Paused
+                                </span>
+                            </div>
+                        <div class="btn-group" role="group">
+                            <button
+                                class="btn btn-sm btn-light"
+                                t-on-click="toggleLiveUpdate"
+                                title="Start/Stop Live Update">
+                                <i t-if="!state.isRunning" class="fa fa-play text-success"/>
+                                <i t-if="state.isRunning" class="fa fa-pause text-warning"/>
+<!--                                <t t-if="state.isRunning"> Running</t>-->
+<!--                                <t t-if="!state.isRunning"> Stopped</t>-->
+                            </button>
+                            <button
+                                class="btn btn-sm btn-light"
+                                t-on-click="exportChart"
+                                title="Export Chart as Image">
+                                <i class="fa fa-picture-o"/> Chart
+                            </button>
+                            <button
+                                class="btn btn-sm btn-light"
+                                t-on-click="exportData"
+                                title="Export Data as CSV">
+                                <i class="fa fa-download"/> Data
+                            </button>
+                            <button
+                                class="btn btn-sm btn-light"
+                                t-on-click="clearData"
+                                title="Clear Chart">
+                                <i class="fa fa-trash"/> Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body" style="height: 500px; padding: 20px;">
+                    <canvas t-ref="chartCanvas" style="width: 100%; height: 100%;"/>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

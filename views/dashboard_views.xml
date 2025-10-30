@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Actions to select each frequency -->
+    <record id="action_select_2hz" model="ir.actions.server">
+        <field name="name">Select 2Hz</field>
+        <field name="model_id" ref="model_vibration_dashboard"/>
+        <field name="state">code</field>
+        <field name="code">
+action = records.write({'selected_frequency': '2hz'})
+        </field>
+    </record>
+
+    <record id="action_select_3hz" model="ir.actions.server">
+        <field name="name">Select 3Hz</field>
+        <field name="model_id" ref="model_vibration_dashboard"/>
+        <field name="state">code</field>
+        <field name="code">
+action = records.write({'selected_frequency': '3hz'})
+        </field>
+    </record>
+
+    <record id="action_select_5hz" model="ir.actions.server">
+        <field name="name">Select 5Hz</field>
+        <field name="model_id" ref="model_vibration_dashboard"/>
+        <field name="state">code</field>
+        <field name="code">
+action = records.write({'selected_frequency': '5hz'})
+        </field>
+    </record>
+
+    <record id="action_select_7hz" model="ir.actions.server">
+        <field name="name">Select 7Hz</field>
+        <field name="model_id" ref="model_vibration_dashboard"/>
+        <field name="state">code</field>
+        <field name="code">
+action = records.write({'selected_frequency': '7hz'})
+        </field>
+    </record>
+    <!-- Dashboard Form View -->
+    <record id="view_vibration_dashboard_form" model="ir.ui.view">
+        <field name="name">vibration.dashboard.form</field>
+        <field name="model">vibration.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Vibration Testing Machine Dashboard" create="false" delete="false">
+                <header>
+                    <button name="action_refresh_dashboard"
+                            string="Refresh Dashboard"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-refresh"/>
+                </header>
+                <sheet>
+                    <div class="row">
+                        <!-- 2Hz Card -->
+                        <div class="col-lg-3 col-6">
+                            <div class="card border-primary" style="cursor: pointer;">
+                                <div class="card-body text-center">
+                                    <p class="mb-0"><strong>2Hz</strong></p>
+                                    <small class="text-muted">±R Amplitude</small>
+                                    <div class="mt-2">
+                                        <button name="%(action_select_2hz)d"
+                                                string="View Details"
+                                                type="action"
+                                                class="btn btn-sm btn-primary"
+                                                context="{'default_selected_frequency': '2hz'}"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3Hz Card -->
+                        <div class="col-lg-3 col-6">
+                            <div class="card border-success" style="cursor: pointer;">
+                                <div class="card-body text-center">
+                                    <p class="mb-0"><strong>3Hz</strong></p>
+                                    <small class="text-muted">±R/2 Amplitude</small>
+                                    <div class="mt-2">
+                                        <button name="%(action_select_3hz)d"
+                                                string="View Details"
+                                                type="action"
+                                                class="btn btn-sm btn-success"
+                                                context="{'default_selected_frequency': '3hz'}"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 5Hz Card -->
+                        <div class="col-lg-3 col-6">
+                            <div class="card border-info" style="cursor: pointer;">
+                                <div class="card-body text-center">
+                                    <p class="mb-0"><strong>5Hz</strong></p>
+                                    <small class="text-muted">±R/4 Amplitude</small>
+                                    <div class="mt-2">
+                                        <button name="%(action_select_5hz)d"
+                                                string="View Details"
+                                                type="action"
+                                                class="btn btn-sm btn-info"
+                                                context="{'default_selected_frequency': '5hz'}"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 7Hz Card -->
+                        <div class="col-lg-3 col-6">
+                            <div class="card border-warning" style="cursor: pointer;">
+                                <div class="card-body text-center">
+                                    <p class="mb-0"><strong>7Hz</strong></p>
+                                    <small class="text-muted">±R/6 Amplitude</small>
+                                    <div class="mt-2">
+                                        <button name="%(action_select_7hz)d"
+                                                string="View Details"
+                                                type="action"
+                                                class="btn btn-sm btn-warning"
+                                                context="{'default_selected_frequency': '7hz'}"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hidden field to track selected frequency -->
+                    <field name="selected_frequency" invisible="1"/>
+
+                    <!-- Data Display Section (shown when frequency is selected) -->
+                    <div class="row mt-4" invisible="not selected_frequency">
+                        <div class="col-12">
+                            <div class="alert alert-info d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Selected Frequency: </strong>
+                                    <field name="selected_frequency" readonly="1" class="fw-bold"/>
+                                </div>
+                                <button name="action_clear_selection"
+                                        string="Clear Selection"
+                                        type="object"
+                                        class="btn btn-sm btn-secondary"
+                                        icon="fa-times"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Chart Section -->
+                    <div class="row mt-3" invisible="not selected_frequency">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-line-chart"/> Live Chart - Dimension vs Time
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <field name="chart_data" widget="vibration_live_chart" nolabel="1"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Logs Section -->
+                    <div class="row mt-3" invisible="not selected_frequency">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-secondary text-white">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-table"/> Data Logs
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <button name="action_view_selected_logs"
+                                            string="View Data Logs"
+                                            type="object"
+                                            class="btn btn-primary"
+                                            icon="fa-table"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Dashboard Action -->
+    <record id="action_vibration_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard</field>
+        <field name="res_model">vibration.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'form_view_initial_mode': 'edit'}</field>
+    </record>
+</odoo>

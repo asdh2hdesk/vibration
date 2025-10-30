@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="vibration_monitoring.VibrationLiveChartField">
+        <div class="o_field_vibration_live_chart">
+            <canvas t-ref="liveChartCanvas" style="height: 400px; width: 100%;"/>
+        </div>
+    </t>
+</templates>

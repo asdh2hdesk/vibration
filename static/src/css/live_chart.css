@@ -1,0 +1,66 @@
+.o_live_chart_widget {
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.o_chart_controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 6px;
+}
+
+.o_chart_controls .btn {
+    margin-right: 8px;
+}
+
+.o_chart_controls .btn:last-child {
+    margin-right: 0;
+}
+
+.o_chart_status {
+    display: flex;
+    align-items: center;
+}
+
+.o_chart_status .badge {
+    font-size: 14px;
+    padding: 8px 15px;
+}
+
+.o_chart_status .fa-circle {
+    font-size: 10px;
+    margin-right: 5px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.o_chart_container {
+    position: relative;
+    height: 500px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+}
+
+.o_chart_container canvas {
+    max-height: 100%;
+}
+
+.o_chart_info {
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+}

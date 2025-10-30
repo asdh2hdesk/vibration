@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_vibration_monitor_user,access.vibration.monitor.user,model_vibration_monitor,base.group_user,1,1,1,1
+access_vibration_data_log_user,access.vibration.data.log.user,model_vibration_data_log,base.group_user,1,1,1,1
+access_vibration_cycle_data_user,access.vibration.cycle.data.user,model_vibration_cycle_data,base.group_user,1,1,1,1
+access_vibration_dashboard_user,vibration.dashboard.user,model_vibration_dashboard,base.group_user,1,1,1,0
+access_vibration_dashboard_manager,vibration.dashboard.manager,model_vibration_dashboard,base.group_system,1,1,1,1

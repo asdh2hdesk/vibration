@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Cycle Data list View with Chart and Generate Button -->
+    <record id="view_vibration_cycle_data_tree" model="ir.ui.view">
+        <field name="name">vibration.cycle.data.tree</field>
+        <field name="model">vibration.cycle.data</field>
+        <field name="arch" type="xml">
+            <list string="Cycle Data with Charts" create="false" delete="false">
+                <field name="chart_data" widget="cycle_chart_widget"/>
+                <field name="cycle_number"/>
+                <field name="timestamp"/>
+                <field name="degree_0_planned"/>
+                <field name="degree_0_actual"/>
+                <field name="degree_0_planned_time"/>
+                <field name="degree_0_actual_time"/>
+                <field name="degree_45_planned"/>
+                <field name="degree_45_actual"/>
+                <field name="degree_45_planned_time"/>
+                <field name="degree_45_actual_time"/>
+                <field name="degree_90_planned"/>
+                <field name="degree_90_actual"/>
+                <field name="degree_90_planned_time"/>
+                <field name="degree_90_actual_time"/>
+                <field name="degree_135_planned"/>
+                <field name="degree_135_actual"/>
+                <field name="degree_135_planned_time"/>
+                <field name="degree_135_actual_time"/>
+                <field name="degree_180_planned"/>
+                <field name="degree_180_actual"/>
+                <field name="degree_180_planned_time"/>
+                <field name="degree_180_actual_time"/>
+                <field name="degree_225_planned"/>
+                <field name="degree_225_actual"/>
+                <field name="degree_225_planned_time"/>
+                <field name="degree_225_actual_time"/>
+                <field name="degree_270_planned"/>
+                <field name="degree_270_actual"/>
+                <field name="degree_270_planned_time"/>
+                <field name="degree_270_actual_time"/>
+                <field name="degree_315_planned"/>
+                <field name="degree_315_actual"/>
+                <field name="degree_315_planned_time"/>
+                <field name="degree_315_actual_time"/>
+                <field name="degree_360_planned"/>
+                <field name="degree_360_actual"/>
+                <field name="degree_360_planned_time"/>
+                <field name="degree_360_actual_time"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Cycle Data Form View -->
+    <record id="view_vibration_cycle_data_form" model="ir.ui.view">
+        <field name="name">vibration.cycle.data.form</field>
+        <field name="model">vibration.cycle.data</field>
+        <field name="arch" type="xml">
+            <form string="Cycle Data" create="false" delete="false">
+                <div>
+                    <group>
+                        <field name="chart_data" widget="cycle_chart_detail_widget" nolabel="1"/>
+                    </group>
+<!--                    <group>-->
+<!--                        <group string="0°">-->
+<!--                            <field name="degree_0_planned"/>-->
+<!--                            <field name="degree_0_actual"/>-->
+<!--                            <field name="degree_0_planned_time"/>-->
+<!--                            <field name="degree_0_actual_time"/>-->
+<!--                        </group>-->
+<!--                        <group string="45°">-->
+<!--                            <field name="degree_45_planned"/>-->
+<!--                            <field name="degree_45_actual"/>-->
+<!--                            <field name="degree_45_planned_time"/>-->
+<!--                            <field name="degree_45_actual_time"/>-->
+<!--                        </group>-->
+<!--                        <group string="90°">-->
+<!--                            <field name="degree_90_planned"/>-->
+<!--                            <field name="degree_90_actual"/>-->
+<!--                            <field name="degree_90_planned_time"/>-->
+<!--                            <field name="degree_90_actual_time"/>-->
+<!--                        </group>-->
+<!--                        <group string="135°">-->
+<!--                            <field name="degree_135_planned"/>-->
+<!--                            <field name="degree_135_actual"/>-->
+<!--                            <field name="degree_135_planned_time"/>-->
+<!--                            <field name="degree_135_actual_time"/>-->
+<!--                        </group>-->
+<!--                        <group string="180°">-->
+<!--                            <field name="degree_180_planned"/>-->
+<!--                            <field name="degree_180_actual"/>-->
+<!--                            <field name="degree_180_planned_time"/>-->
+<!--                            <field name="degree_180_actual_time"/>-->
+<!--                        </group>-->
+<!--                        <group string="225°">-->
+<!--                            <field name="degree_225_planned"/>-->
+<!--                            <field name="degree_225_actual"/>-->
+<!--                            <field name="degree_225_planned_time"/>-->
+<!--                            <field name="degree_225_actual_time"/>-->
+<!--                        </group>-->
+<!--                        <group string="270°">-->
+<!--                            <field name="degree_270_planned"/>-->
+<!--                            <field name="degree_270_actual"/>-->
+<!--                            <field name="degree_270_planned_time"/>-->
+<!--                            <field name="degree_270_actual_time"/>-->
+<!--                        </group>-->
+<!--                        <group string="315°">-->
+<!--                            <field name="degree_315_planned"/>-->
+<!--                            <field name="degree_315_actual"/>-->
+<!--                            <field name="degree_315_planned_time"/>-->
+<!--                            <field name="degree_315_actual_time"/>-->
+<!--                        </group>-->
+<!--                        <group string="360°">-->
+<!--                            <field name="degree_360_planned"/>-->
+<!--                            <field name="degree_360_actual"/>-->
+<!--                            <field name="degree_360_planned_time"/>-->
+<!--                            <field name="degree_360_actual_time"/>-->
+<!--                        </group>-->
+<!--                    </group>-->
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Data Log Tree View -->
+    <record id="view_vibration_data_log_tree" model="ir.ui.view">
+        <field name="name">vibration.data.log.tree</field>
+        <field name="model">vibration.data.log</field>
+        <field name="arch" type="xml">
+            <list string="Vibration Data Logs" create="false">
+                <field name="timestamp"/>
+                <field name="cycle_number"/>
+                <field name="degree"/>
+                <field name="time_in_cycle"/>
+                <field name="time_actual"/>
+                <field name="dimension"/>
+                <field name="amplitude"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View - This is now the main view -->
+    <record id="view_vibration_monitor_form" model="ir.ui.view">
+        <field name="name">vibration.monitor.form</field>
+        <field name="model">vibration.monitor</field>
+        <field name="arch" type="xml">
+            <form string="Vibration Monitor" create="false" delete="false">
+                <header>
+                    <button name="action_generate_simulated_data"
+                            string="Trace"
+                            type="object"
+                            class="btn-success"/>
+<!--                    <button name="action_connect_plc"-->
+<!--                            string="Connect PLC"-->
+<!--                            type="object"-->
+<!--                            class="btn-info"-->
+<!--                            invisible="is_connected"/>-->
+<!--                    <button name="action_disconnect_plc"-->
+<!--                            string="Disconnect PLC"-->
+<!--                            type="object"-->
+<!--                            class="btn-warning"-->
+<!--                            invisible="not is_connected"/>-->
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="frequency_variant" readonly="1" widget="radio" options="{'horizontal': true}"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group>
+                            <group>
+                                <field name="frequency_value"/>
+                                <field name="amplitude_threshold"/>
+                            </group>
+                            <group>
+                                <field name="dimension_range"/>
+                                <field name="movement_cycles"/>
+                            </group>
+                        </group>
+<!--                        <group string="Connection Status">-->
+<!--                            <field name="is_connected" widget="boolean"/>-->
+<!--                            <field name="last_update"/>-->
+<!--                            <field name="plc_ip_address"/>-->
+<!--                            <field name="plc_port"/>-->
+<!--                        </group>-->
+                    </group>
+
+<!--                    <group>-->
+<!--                        <group string="Statistics">-->
+<!--                            <field name="cycle_data_count"/>-->
+<!--                            <field name="data_log_count"/>-->
+<!--                        </group>-->
+<!--                    </group>-->
+                    <notebook>
+                        <page string="Vibrations">
+                            <field name="cycle_data_ids" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree View -->
+    <record id="view_vibration_monitor_tree" model="ir.ui.view">
+        <field name="name">vibration.monitor.tree</field>
+        <field name="model">vibration.monitor</field>
+        <field name="arch" type="xml">
+            <list string="Vibration Monitors">
+                <field name="frequency_variant"/>
+                <field name="frequency_value"/>
+                <field name="amplitude_threshold"/>
+                <field name="dimension_range"/>
+                <field name="movement_cycles"/>
+                <field name="is_connected"/>
+                <field name="last_update"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_vibration_monitor_search" model="ir.ui.view">
+        <field name="name">vibration.monitor.search</field>
+        <field name="model">vibration.monitor</field>
+        <field name="arch" type="xml">
+            <search string="Search Vibration Monitor">
+                <field name="frequency_variant"/>
+                <field name="plc_ip_address"/>
+                <filter string="Connected" name="connected" domain="[('is_connected', '=', True)]"/>
+                <filter string="Disconnected" name="disconnected" domain="[('is_connected', '=', False)]"/>
+                <filter string="2 Hz" name="freq_2hz" domain="[('frequency_variant', '=', '2hz')]"/>
+                <filter string="3 Hz" name="freq_3hz" domain="[('frequency_variant', '=', '3hz')]"/>
+                <filter string="5 Hz" name="freq_5hz" domain="[('frequency_variant', '=', '5hz')]"/>
+                <filter string="7 Hz" name="freq_7hz" domain="[('frequency_variant', '=', '7hz')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Frequency" name="group_frequency" context="{'group_by': 'frequency_variant'}"/>
+                    <filter string="Connection Status" name="group_connection" context="{'group_by': 'is_connected'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action for 2Hz - Now opens Monitor Form first -->
+    <record id="action_vibration_monitor_2hz" model="ir.actions.act_window">
+        <field name="name">2Hz Monitor</field>
+        <field name="res_model">vibration.monitor</field>
+        <field name="view_mode">form</field>
+        <field name="domain">[('frequency_variant', '=', '2hz')]</field>
+        <field name="context">{'default_frequency_variant': '2hz'}</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- Action for 3Hz - Now opens Monitor Form first -->
+    <record id="action_vibration_monitor_3hz" model="ir.actions.act_window">
+        <field name="name">3Hz Monitor</field>
+        <field name="res_model">vibration.monitor</field>
+        <field name="view_mode">form</field>
+        <field name="domain">[('frequency_variant', '=', '3hz')]</field>
+        <field name="context">{'default_frequency_variant': '3hz'}</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- Action for 5Hz - Now opens Monitor Form first -->
+    <record id="action_vibration_monitor_5hz" model="ir.actions.act_window">
+        <field name="name">5Hz Monitor</field>
+        <field name="res_model">vibration.monitor</field>
+        <field name="view_mode">form</field>
+        <field name="domain">[('frequency_variant', '=', '5hz')]</field>
+        <field name="context">{'default_frequency_variant': '5hz'}</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- Action for 7Hz - Now opens Monitor Form first -->
+    <record id="action_vibration_monitor_7hz" model="ir.actions.act_window">
+        <field name="name">7Hz Monitor</field>
+        <field name="res_model">vibration.monitor</field>
+        <field name="view_mode">form</field>
+        <field name="domain">[('frequency_variant', '=', '7hz')]</field>
+        <field name="context">{'default_frequency_variant': '7hz'}</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- Dashboard Action -->
+    <record id="action_vibration_dashboard" model="ir.actions.act_window">
+        <field name="name">Vibration Dashboard</field>
+        <field name="res_model">vibration.monitor</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Vibration Monitoring Dashboard
+            </p>
+        </field>
+    </record>
+
+    <!-- Main Menu -->
+    <menuitem id="menu_vibration_root" name="Vibration Testing Machine" sequence="10"/>
+
+    <menuitem id="menu_vibration_dashboard" name="Dashboard" parent="menu_vibration_root" action="action_vibration_dashboard" sequence="5"/>
+
+    <menuitem id="menu_vibration_2hz" name="2Hz" parent="menu_vibration_root" action="action_vibration_monitor_2hz" sequence="10"/>
+
+    <menuitem id="menu_vibration_3hz" name="3Hz" parent="menu_vibration_root" action="action_vibration_monitor_3hz" sequence="20"/>
+
+    <menuitem id="menu_vibration_5hz" name="5Hz" parent="menu_vibration_root" action="action_vibration_monitor_5hz" sequence="30"/>
+
+    <menuitem id="menu_vibration_7hz" name="7Hz" parent="menu_vibration_root" action="action_vibration_monitor_7hz" sequence="40"/>
+
+</odoo>
