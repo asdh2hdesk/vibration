@@ -129,9 +129,10 @@
             <list string="Vibration Data Logs" create="false">
                 <field name="timestamp"/>
                 <field name="cycle_number"/>
+                <field name="sub_cycle_number" string="Cycle #"/>
                 <field name="degree"/>
                 <field name="time_in_cycle"/>
-                <field name="time_actual"/>
+                <field name="time_actual" string="Time in Second (s)"/>
                 <field name="dimension"/>
                 <field name="amplitude"/>
             </list>

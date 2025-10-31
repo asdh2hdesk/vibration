@@ -70,7 +70,7 @@ class VibrationMonitor(models.Model):
         return amplitude * math.sin(radians)
 
     def action_generate_simulated_data(self):
-        """Generate simulated vibration data for testing"""
+        """Generate simulated vibration data for testing - 1 record per second containing all cycles"""
         self.ensure_one()
 
         amplitude_map = {
@@ -82,7 +82,7 @@ class VibrationMonitor(models.Model):
         max_amplitude = amplitude_map.get(self.frequency_variant, 50)
 
         sample_degrees = self._get_sample_points_for_cycle()
-        num_cycles = int(self.frequency_value)
+        num_cycles = int(self.frequency_value)  # Number of cycles in 1 second
 
         # Delete existing logs
         self.env['vibration.data.log'].search([('monitor_id', '=', self.id)]).unlink()
@@ -90,51 +90,68 @@ class VibrationMonitor(models.Model):
 
         start_time = datetime.now()
         total_duration = 1.0  # 1 second total
-        cycle_duration = total_duration / num_cycles
+        cycle_duration = total_duration / num_cycles  # Duration per cycle
 
-        # Generate data for each cycle
+        # Create ONE cycle data record for the entire 1 second
+        cycle_data = {
+            'monitor_id': self.id,
+            'cycle_number': 1,  # Just 1 record representing 1 second
+            'timestamp': start_time,
+        }
+
+        # Store all data points across all cycles in this one record
+        all_data_points = []
+
+        # Generate data for each cycle within the 1 second
         for cycle in range(num_cycles):
-            cycle_start_time = start_time + timedelta(seconds=cycle * cycle_duration)
-
-            # Create cycle record
-            cycle_data = {
-                'monitor_id': self.id,
-                'cycle_number': cycle + 1,
-                'timestamp': cycle_start_time,
-            }
+            cycle_start_time_offset = cycle * cycle_duration
 
             # Generate data for each degree in this cycle
             for i, degree in enumerate(sample_degrees):
                 time_offset_in_cycle = (i / (len(sample_degrees) - 1)) * cycle_duration
-                time_actual = cycle * cycle_duration + time_offset_in_cycle
-                timestamp = cycle_start_time + timedelta(seconds=time_offset_in_cycle)
+                time_in_second = cycle_start_time_offset + time_offset_in_cycle
+                timestamp = start_time + timedelta(seconds=time_in_second)
 
                 planned_value = self._calculate_displacement(degree, max_amplitude)
                 # Add small variation for actual value (±5%)
                 import random
                 actual_value = planned_value * random.uniform(0.95, 1.05)
 
-                # Store in cycle data dictionary
-                cycle_data[f'degree_{degree}_planned'] = round(planned_value, 2)
-                cycle_data[f'degree_{degree}_actual'] = round(actual_value, 2)
-                cycle_data[f'degree_{degree}_planned_time'] = round(time_offset_in_cycle, 4)
-                cycle_data[f'degree_{degree}_actual_time'] = round(time_offset_in_cycle + random.uniform(-0.001, 0.001),
-                                                                   4)
-
-                # Also create individual log entries
-                self.env['vibration.data.log'].create({
-                    'monitor_id': self.id,
-                    'cycle_number': cycle + 1,
+                # Store data point
+                all_data_points.append({
+                    'cycle': cycle + 1,
                     'degree': degree,
-                    'dimension': round(planned_value, 2),
-                    'amplitude': round(planned_value, 2),
-                    'timestamp': timestamp,
-                    'time_in_cycle': round(time_offset_in_cycle, 4),
-                    'time_actual': round(time_actual, 4),
+                    'time': time_in_second,
+                    'planned': planned_value,
+                    'actual': actual_value
                 })
 
-            # Create the cycle record with all degree data
-            self.env['vibration.cycle.data'].create(cycle_data)
+                # FIXED: Store actual_value in amplitude field, not planned_value
+                self.env['vibration.data.log'].create({
+                    'monitor_id': self.id,
+                    'cycle_number': 1,  # All in the same 1-second record
+                    'sub_cycle_number': cycle + 1,  # Which cycle within the second
+                    'degree': degree,
+                    'dimension': round(planned_value, 2),  # Planned value stays here
+                    'amplitude': round(actual_value, 2),  # FIXED: Use actual_value here!
+                    'timestamp': timestamp,
+                    'time_in_cycle': round(time_offset_in_cycle, 4),
+                    'time_actual': round(time_in_second, 4),
+                })
+
+        # Store the first cycle's degree data in the main fields for compatibility
+        for i, degree in enumerate(sample_degrees):
+            first_cycle_point = all_data_points[i]
+            cycle_data[f'degree_{degree}_planned'] = round(first_cycle_point['planned'], 2)
+            cycle_data[f'degree_{degree}_actual'] = round(first_cycle_point['actual'], 2)
+            cycle_data[f'degree_{degree}_planned_time'] = round(first_cycle_point['time'], 4)
+            cycle_data[f'degree_{degree}_actual_time'] = round(first_cycle_point['time'], 4)
+
+        # Store all data points as JSON for the chart
+        cycle_data['all_data_points'] = json.dumps(all_data_points)
+
+        # Create the single cycle record
+        self.env['vibration.cycle.data'].create(cycle_data)
 
         self.last_update = fields.Datetime.now()
 
@@ -219,6 +236,8 @@ class VibrationMonitor(models.Model):
             'context': {'default_monitor_id': self.id},
             'target': 'current',
         }
+
+
 class VibrationDataLog(models.Model):
     _name = 'vibration.data.log'
     _description = 'Vibration Data Log'
@@ -226,12 +245,13 @@ class VibrationDataLog(models.Model):
 
     monitor_id = fields.Many2one('vibration.monitor', string='Monitor', required=True, ondelete='cascade')
     cycle_number = fields.Integer(string='Sr. No.')
+    sub_cycle_number = fields.Integer(string='Cycle #')  # Which cycle within the second (1, 2, 3, etc.)
     degree = fields.Float(string='Degree (°)')
     dimension = fields.Float(string='Dimension (MM)')
     amplitude = fields.Float(string='Amplitude')
     timestamp = fields.Datetime(string='Timestamp', required=True, default=fields.Datetime.now)
-    time_in_cycle = fields.Float(string='Planned Time')
-    time_actual = fields.Float(string='Actual Time')
+    time_in_cycle = fields.Float(string='Time in Cycle')
+    time_actual = fields.Float(string='Time in Second')
 
 
 class VibrationCycleData(models.Model):
@@ -245,6 +265,11 @@ class VibrationCycleData(models.Model):
     timestamp = fields.Datetime(string='Timestamp', required=True, default=fields.Datetime.now)
     frequency_value = fields.Float(string='Frequency (Hz)', related='monitor_id.frequency_value', store=False)
 
+
+    # Store all data points for multiple cycles in JSON format
+    all_data_points = fields.Text(string='All Data Points (JSON)')
+
+    # Keep the original fields for first cycle (for backward compatibility)
     # 0 degree
     degree_0_planned = fields.Float(string='0° Planned Value')
     degree_0_actual = fields.Float(string='0° Actual Value')
@@ -301,29 +326,36 @@ class VibrationCycleData(models.Model):
 
     chart_data = fields.Text(string='Chart', compute='_compute_chart_data')
 
-    @api.depends('degree_0_planned', 'degree_0_actual', 'degree_45_planned', 'degree_45_actual',
-                 'degree_90_planned', 'degree_90_actual', 'degree_135_planned', 'degree_135_actual',
-                 'degree_180_planned', 'degree_180_actual', 'degree_225_planned', 'degree_225_actual',
-                 'degree_270_planned', 'degree_270_actual', 'degree_315_planned', 'degree_315_actual',
-                 'degree_360_planned', 'degree_360_actual')
+    @api.depends('all_data_points')
     def _compute_chart_data(self):
         for record in self:
-            degrees = [0, 45, 90, 135, 180, 225, 270, 315, 360]
-            planned_data = []
-            actual_data = []
+            if record.all_data_points:
+                # Use the all_data_points JSON which contains all cycles
+                try:
+                    all_points = json.loads(record.all_data_points)
 
-            for deg in degrees:
-                planned_data.append({
-                    'degree': deg,
-                    'value': getattr(record, f'degree_{deg}_planned', 0)
-                })
-                actual_data.append({
-                    'degree': deg,
-                    'value': getattr(record, f'degree_{deg}_actual', 0)
-                })
+                    planned_data = []
+                    actual_data = []
 
-            record.chart_data = json.dumps({
-                'planned': planned_data,
-                'actual': actual_data
-            })
+                    for point in all_points:
+                        planned_data.append({
+                            'degree': point['degree'],
+                            'time': point['time'],
+                            'value': point['planned'],
+                            'cycle': point['cycle']
+                        })
+                        actual_data.append({
+                            'degree': point['degree'],
+                            'time': point['time'],
+                            'value': point['actual'],
+                            'cycle': point['cycle']
+                        })
 
+                    record.chart_data = json.dumps({
+                        'planned': planned_data,
+                        'actual': actual_data
+                    })
+                except:
+                    record.chart_data = json.dumps({'planned': [], 'actual': []})
+            else:
+                record.chart_data = json.dumps({'planned': [], 'actual': []})

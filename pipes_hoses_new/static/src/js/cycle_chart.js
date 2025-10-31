@@ -38,17 +38,10 @@ class CycleChartWidget extends Component {
                 this.chart.destroy();
             }
 
-            // Prepare data points for scatter plot
-            const plannedData = data.planned.map((d, index) => ({
-                x: index,
-                y: d.value,
-                degree: d.degree
-            }));
-
-            const actualData = data.actual.map((d, index) => ({
-                x: index,
-                y: d.value,
-                degree: d.degree
+            // Prepare data points using time for x-axis
+            const actualData = data.actual.map(d => ({
+                x: d.time || 0,
+                y: d.value
             }));
 
             // Create new chart with Chart.js
@@ -133,53 +126,49 @@ class CycleChartDetailWidget extends Component {
                 this.chart.destroy();
             }
 
-            const record = this.props.record.data;
-            const frequencyValue = parseFloat(record.frequency_value);
-            if (!frequencyValue || frequencyValue <= 0) {
-                console.warn("Invalid frequency value detected:", frequencyValue);
-                return;
-            }
-            const cycleDuration = 1.0 / frequencyValue;
+            // Use time values directly from the data
+            const plannedData = data.planned.map(d => ({
+                x: d.time,
+                y: d.value,
+                degree: d.degree,
+                cycle: d.cycle,
+                dimension: d.value
+            }));
 
+            const actualData = data.actual.map(d => ({
+                x: d.time,
+                y: d.value,
+                degree: d.degree,
+                cycle: d.cycle,
+                dimension: d.value
+            }));
 
-            const plannedData = data.planned.map((d, index) => {
-                const degreeIndex = [0, 45, 90, 135, 180, 225, 270, 315, 360].indexOf(d.degree);
-                const timeInCycle = (degreeIndex / 8.0) * cycleDuration;
-                return {
-                    x: timeInCycle,
-                    y: d.value,
-                    degree: d.degree,
-                    dimension: d.value
-                };
-            });
-
-            const actualData = data.actual.map((d, index) => {
-                const degreeIndex = [0, 45, 90, 135, 180, 225, 270, 315, 360].indexOf(d.degree);
-                const timeInCycle = (degreeIndex / 8.0) * cycleDuration;
-                return {
-                    x: timeInCycle,
-                    y: d.value,
-                    degree: d.degree,
-                    dimension: d.value
-                };
-            });
-
-            // Create detailed chart
+            // Create detailed chart showing all cycles in 1 second
             this.chart = new Chart(ctx, {
                 type: 'scatter',
                 data: {
                     datasets: [
                         {
-                            label: 'Dimension (MM)',
+                            label: 'Planned',
+                            data: plannedData,
+                            borderColor: 'rgba(75, 192, 192, 1)', // Light blue
+                            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                            borderWidth: 2,
+                            borderDash: [5, 5], // Dotted line
+                            tension: 0.4,
+                            pointRadius: 2,
+                            pointHoverRadius: 5,
+                            showLine: true,
+                        },
+                        {
+                            label: 'Actual',
                             data: actualData,
-                            borderColor: 'rgb(75, 192, 192)',
-                            backgroundColor: 'rgba(75, 192, 192, 0.5)',
-                            borderWidth: 3,
-                            pointRadius: 5,
-                            pointHoverRadius: 7,
+                            borderColor: 'rgb(0, 0, 0)', // Black
+                            backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                            borderWidth: 2,
+                            pointRadius: 2,
                             showLine: true,
                             tension: 0.4,
-                            fill: false,
                         }
                     ]
                 },
@@ -194,13 +183,21 @@ class CycleChartDetailWidget extends Component {
                             display: true,
                             position: 'top',
                         },
+                        title: {
+                            display: true,
+                            text: 'Dimension vs Time',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        },
                         tooltip: {
                             mode: 'nearest',
                             intersect: false,
                             callbacks: {
                                 title: function(context) {
                                     const point = context[0].raw;
-                                    return `${point.degree}° - ${point.x.toFixed(4)}s`;
+                                    return `Cycle ${point.cycle} - ${point.degree}° - ${point.x.toFixed(4)}s`;
                                 },
                                 label: function(context) {
                                     const point = context.raw;
@@ -221,7 +218,7 @@ class CycleChartDetailWidget extends Component {
                                 }
                             },
                             min: 0,
-                            max: cycleDuration,
+                            max: 1.0, // Always 1 second
                             grid: {
                                 display: true,
                                 color: 'rgba(0, 0, 0, 0.1)'
@@ -269,6 +266,7 @@ class CycleChartDetailWidget extends Component {
             console.error('Error rendering detailed chart:', e);
         }
     }
+
     async exportChart() {
         if (!this.chart) return;
 
@@ -305,10 +303,10 @@ class CycleChartDetailWidget extends Component {
 
         try {
             const data = JSON.parse(chartData);
-            let csv = 'Type,Degree,Value (MM)\n';
+            let csv = 'Type,Cycle,Degree,Time(s),Value (MM)\n';
 
             data.actual.forEach(point => {
-                csv += `Actual,${point.degree},${point.value}\n`;
+                csv += `Actual,${point.cycle},${point.degree},${point.time},${point.value}\n`;
             });
 
             const blob = new Blob([csv], { type: 'text/csv' });

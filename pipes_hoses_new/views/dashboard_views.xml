@@ -6,7 +6,14 @@
         <field name="model_id" ref="model_vibration_dashboard"/>
         <field name="state">code</field>
         <field name="code">
-action = records.write({'selected_frequency': '2hz'})
+action = {
+    'type': 'ir.actions.act_window',
+    'res_model': 'vibration.dashboard',
+    'res_id': records.id,
+    'view_mode': 'form',
+    'target': 'current',
+}
+records.write({'selected_frequency': '2hz'})
         </field>
     </record>
 
@@ -15,7 +22,14 @@ action = records.write({'selected_frequency': '2hz'})
         <field name="model_id" ref="model_vibration_dashboard"/>
         <field name="state">code</field>
         <field name="code">
-action = records.write({'selected_frequency': '3hz'})
+action = {
+    'type': 'ir.actions.act_window',
+    'res_model': 'vibration.dashboard',
+    'res_id': records.id,
+    'view_mode': 'form',
+    'target': 'current',
+}
+records.write({'selected_frequency': '3hz'})
         </field>
     </record>
 
@@ -24,7 +38,14 @@ action = records.write({'selected_frequency': '3hz'})
         <field name="model_id" ref="model_vibration_dashboard"/>
         <field name="state">code</field>
         <field name="code">
-action = records.write({'selected_frequency': '5hz'})
+action = {
+    'type': 'ir.actions.act_window',
+    'res_model': 'vibration.dashboard',
+    'res_id': records.id,
+    'view_mode': 'form',
+    'target': 'current',
+}
+records.write({'selected_frequency': '5hz'})
         </field>
     </record>
 
@@ -33,9 +54,47 @@ action = records.write({'selected_frequency': '5hz'})
         <field name="model_id" ref="model_vibration_dashboard"/>
         <field name="state">code</field>
         <field name="code">
-action = records.write({'selected_frequency': '7hz'})
+action = {
+    'type': 'ir.actions.act_window',
+    'res_model': 'vibration.dashboard',
+    'res_id': records.id,
+    'view_mode': 'form',
+    'target': 'current',
+}
+records.write({'selected_frequency': '7hz'})
         </field>
     </record>
+
+    <!-- Tree view for cycle data in dashboard -->
+    <record id="view_vibration_cycle_data_tree_dashboard" model="ir.ui.view">
+        <field name="name">vibration.cycle.data.tree.dashboard</field>
+        <field name="model">vibration.cycle.data</field>
+        <field name="arch" type="xml">
+            <list string="Cycle Data" create="false" edit="false" delete="false">
+                <field name="cycle_number"/>
+                <field name="timestamp"/>
+                <field name="degree_0_planned"/>
+                <field name="degree_0_actual"/>
+                <field name="degree_45_planned"/>
+                <field name="degree_45_actual"/>
+                <field name="degree_90_planned"/>
+                <field name="degree_90_actual"/>
+                <field name="degree_135_planned"/>
+                <field name="degree_135_actual"/>
+                <field name="degree_180_planned"/>
+                <field name="degree_180_actual"/>
+                <field name="degree_225_planned"/>
+                <field name="degree_225_actual"/>
+                <field name="degree_270_planned"/>
+                <field name="degree_270_actual"/>
+                <field name="degree_315_planned"/>
+                <field name="degree_315_actual"/>
+                <field name="degree_360_planned"/>
+                <field name="degree_360_actual"/>
+            </list>
+        </field>
+    </record>
+
     <!-- Dashboard Form View -->
     <record id="view_vibration_dashboard_form" model="ir.ui.view">
         <field name="name">vibration.dashboard.form</field>
@@ -120,10 +179,8 @@ action = records.write({'selected_frequency': '7hz'})
                         </div>
                     </div>
 
-                    <!-- Hidden field to track selected frequency -->
                     <field name="selected_frequency" invisible="1"/>
 
-                    <!-- Data Display Section (shown when frequency is selected) -->
                     <div class="row mt-4" invisible="not selected_frequency">
                         <div class="col-12">
                             <div class="alert alert-info d-flex justify-content-between align-items-center">
@@ -140,41 +197,99 @@ action = records.write({'selected_frequency': '7hz'})
                         </div>
                     </div>
 
-                    <!-- Live Chart Section -->
                     <div class="row mt-3" invisible="not selected_frequency">
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-header bg-primary text-white">
+                        <div>
+                            <div class="card h-100">
+                                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                                     <h5 class="mb-0">
                                         <i class="fa fa-line-chart"/> Live Chart - Dimension vs Time
                                     </h5>
+<!--                                    <div class="btn-group" role="group">-->
+<!--                                        <button class="btn btn-sm btn-light" onclick="this.closest('.card-body').querySelector('canvas').toBlob(b => {const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'chart.png'; a.click();});" title="Export Chart as Image">-->
+<!--                                            <i class="fa fa-picture-o"/> Chart-->
+<!--                                        </button>-->
+<!--                                        <button class="btn btn-sm btn-light" title="Export Data as CSV">-->
+<!--                                            <i class="fa fa-download"/> Data-->
+<!--                                        </button>-->
+<!--                                    </div>-->
                                 </div>
                                 <div class="card-body">
+                                    <field name="frequency_value" invisible="1"/>
                                     <field name="chart_data" widget="vibration_live_chart" nolabel="1"/>
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Data Logs Section -->
-                    <div class="row mt-3" invisible="not selected_frequency">
-                        <div class="col-12">
-                            <div class="card">
+                        <div>
+                            <div class="card h-100">
                                 <div class="card-header bg-secondary text-white">
                                     <h5 class="mb-0">
                                         <i class="fa fa-table"/> Data Logs
                                     </h5>
                                 </div>
-                                <div class="card-body">
-                                    <button name="action_view_selected_logs"
-                                            string="View Data Logs"
-                                            type="object"
-                                            class="btn btn-primary"
-                                            icon="fa-table"/>
+                                <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+                                    <field name="cycle_data_ids"
+                                           widget="one2many_list"
+                                           mode="list"
+                                           nolabel="1">
+                                        <list string="Cycle Data" create="false" edit="false" delete="false">
+                                            <field name="cycle_number" string="Sr. No."/>
+                                            <field name="timestamp"/>
+                                            <field name="degree_0_planned" string="0° Plan"/>
+                                            <field name="degree_0_actual" string="0° Act"/>
+                                            <field name="degree_0_planned_time" string="0° Plan Time"/>
+                                            <field name="degree_0_actual_time" string="0° Act Time"/>
+                                            <field name="degree_45_planned" string="45° Plan"/>
+                                            <field name="degree_45_actual" string="45° Act"/>
+                                            <field name="degree_45_planned_time" string="45° Plan Time"/>
+                                            <field name="degree_45_actual_time" string="45° Act Time"/>
+                                            <field name="degree_90_planned" string="90° Plan"/>
+                                            <field name="degree_90_actual" string="90° Act"/>
+                                            <field name="degree_90_planned_time" string="90° Plan Time"/>
+                                            <field name="degree_90_actual_time" string="90° Act Time"/>
+                                            <field name="degree_135_planned" string="135° Plan"/>
+                                            <field name="degree_135_actual" string="135° Act"/>
+                                            <field name="degree_135_planned_time" string="135° Plan Time"/>
+                                            <field name="degree_135_actual_time" string="135° Act Time"/>
+                                            <field name="degree_180_planned" string="180° Plan"/>
+                                            <field name="degree_180_actual" string="180° Act"/>
+                                            <field name="degree_180_planned_time" string="180° Plan Time"/>
+                                            <field name="degree_180_actual_time" string="180° Act Time"/>
+                                            <field name="degree_225_planned" string="225° Plan"/>
+                                            <field name="degree_225_actual" string="225° Act"/>
+                                            <field name="degree_225_planned_time" string="225° Plan Time"/>
+                                            <field name="degree_225_actual_time" string="225° Act Time"/>
+                                            <field name="degree_270_planned" string="270° Plan"/>
+                                            <field name="degree_270_actual" string="270° Act"/>
+                                            <field name="degree_270_planned_time" string="270° Plan Time"/>
+                                            <field name="degree_270_actual_time" string="270° Act Time"/>
+                                            <field name="degree_315_planned" string="315° Plan"/>
+                                            <field name="degree_315_actual" string="315° Act"/>
+                                            <field name="degree_315_planned_time" string="315° Plan Time"/>
+                                            <field name="degree_315_actual_time" string="315° Act Time"/>
+                                            <field name="degree_360_planned" string="360° Plan"/>
+                                            <field name="degree_360_actual" string="360° Act"/>
+                                            <field name="degree_360_planned_time" string="360° Plan Time"/>
+                                            <field name="degree_360_actual_time" string="360° Act Time"/>
+                                        </list>
+                                    </field>
                                 </div>
                             </div>
                         </div>
+
                     </div>
+
+                    <!-- Full Width Data Button (Optional - for detailed view) -->
+<!--                    <div class="row mt-3" invisible="not selected_frequency">-->
+<!--                        <div class="col-12">-->
+<!--                            <div class="text-center">-->
+<!--                                <button name="action_view_selected_logs"-->
+<!--                                        string="View Full Data Logs"-->
+<!--                                        type="object"-->
+<!--                                        class="btn btn-primary"-->
+<!--                                        icon="fa-external-link"/>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
                 </sheet>
             </form>
         </field>

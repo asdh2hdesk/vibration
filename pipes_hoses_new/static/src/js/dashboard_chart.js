@@ -2,6 +2,7 @@
 
 import { Component, onMounted, onWillUnmount, useRef, onWillUpdateProps } from "@odoo/owl";
 import { registry } from "@web/core/registry";
+import { useService } from "@web/core/utils/hooks";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
 
 export class VibrationLiveChartField extends Component {
@@ -13,6 +14,7 @@ export class VibrationLiveChartField extends Component {
     setup() {
         this.chartRef = useRef("liveChartCanvas");
         this.chart = null;
+        this.notification = useService("notification");
 
         onMounted(() => {
             this.renderChart();
@@ -43,120 +45,226 @@ export class VibrationLiveChartField extends Component {
     }
 
     renderChart() {
-        const canvas = this.chartRef.el;
-        if (!canvas) return;
+    const canvas = this.chartRef.el;
+    if (!canvas) return;
 
-        const data = this.chartData;
-        if (!data || data.length === 0) {
-            return;
+    const data = this.chartData;
+    if (!data || !data.actual || data.actual.length === 0) {
+        return;
+    }
+
+    const ctx = canvas.getContext('2d');
+
+    // Get frequency value (still needed for display purposes)
+    const record = this.props.record.data;
+    const frequencyValue = parseFloat(record.frequency_value);
+    if (!frequencyValue || frequencyValue <= 0) {
+        console.warn("Invalid frequency value detected:", frequencyValue);
+        return;
+    }
+
+    // Prepare planned data - use the time field directly from the data
+    const plannedData = data.planned.map((d) => ({
+        x: d.time,  // Use the time field directly from backend
+        y: d.value,
+        degree: d.degree,
+        dimension: d.value,
+        cycle: d.cycle
+    }));
+
+    // Prepare actual data using time field from logs
+    const actualData = data.actual.map((d) => ({
+        x: d.time,
+        y: d.value,
+        degree: d.degree,
+        dimension: d.value,
+        cycle: d.cycle || 1
+    }));
+
+    const datasets = [
+        {
+            label: 'Planned',
+            data: plannedData,
+            borderColor: 'rgba(75, 192, 192, 1)', // Light blue
+            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+            borderWidth: 2,
+            borderDash: [5, 5], // Dotted line
+            tension: 0.4,
+            pointRadius: 2,
+            pointHoverRadius: 5,
+        },
+        {
+            label: 'Actual',
+            data: actualData,
+            borderColor: 'rgb(0, 0, 0)', // Black
+            backgroundColor: 'rgba(0, 0, 0, 0.1)',
+            borderWidth: 2,
+            pointRadius: 2,
+            tension: 0.4,
         }
+    ];
 
-        const ctx = canvas.getContext('2d');
-
-        // Prepare data for Chart.js
-        const labels = data.map(d => d.time_actual.toFixed(4));
-        const dimensions = data.map(d => d.dimension);
-        const cycles = [...new Set(data.map(d => d.cycle))];
-
-        // Create datasets for each cycle with different colors
-        const colors = [
-            'rgba(54, 162, 235, 1)',
-            'rgba(255, 99, 132, 1)',
-            'rgba(75, 192, 192, 1)',
-            'rgba(255, 206, 86, 1)',
-            'rgba(153, 102, 255, 1)',
-            'rgba(255, 159, 64, 1)',
-            'rgba(199, 199, 199, 1)',
-        ];
-
-        const datasets = cycles.map((cycle, index) => {
-            const cycleData = data.filter(d => d.cycle === cycle);
-            return {
-                label: `Cycle ${cycle}`,
-                data: cycleData.map(d => ({
-                    x: d.time_actual,
-                    y: d.dimension
-                })),
-                borderColor: colors[index % colors.length],
-                backgroundColor: colors[index % colors.length].replace('1)', '0.1)'),
-                borderWidth: 2,
-                tension: 0.4,
-                pointRadius: 3,
-                pointHoverRadius: 5,
-            };
-        });
-
-        this.chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                datasets: datasets
+    this.chart = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                duration: 300
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    mode: 'index',
-                    intersect: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
                 },
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top',
-                    },
-                    title: {
-                        display: true,
-                        text: 'Vibration: Dimension vs Time',
-                        font: {
-                            size: 16
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const dataPoint = data[context.dataIndex];
-                                return [
-                                    `Cycle: ${dataPoint.cycle}`,
-                                    `Time: ${dataPoint.time_actual.toFixed(4)}s`,
-                                    `Dimension: ${dataPoint.dimension.toFixed(2)} MM`,
-                                    `Degree: ${dataPoint.degree}°`
-                                ];
-                            }
-                        }
+                title: {
+                    display: true,
+                    text: 'Dimension vs Time',
+                    font: {
+                        size: 16,
+                        weight: 'bold'
                     }
                 },
-                scales: {
-                    x: {
-                        type: 'linear',
-                        title: {
-                            display: true,
-                            text: 'Time (seconds)',
-                            font: {
-                                size: 14
-                            }
+                tooltip: {
+                    mode: 'nearest',
+                    intersect: false,
+                    callbacks: {
+                        title: function(context) {
+                            const point = context[0].raw;
+                            return `${point.degree}° - ${point.x.toFixed(4)}s - Cycle ${point.cycle || 1}`;
                         },
-                        ticks: {
-                            callback: function(value) {
-                                return value.toFixed(2);
-                            }
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Dimension (MM)',
-                            font: {
-                                size: 14
-                            }
-                        },
-                        ticks: {
-                            callback: function(value) {
-                                return value.toFixed(2);
-                            }
+                        label: function(context) {
+                            const point = context.raw;
+                            return `${context.dataset.label}: ${point.dimension.toFixed(2)} MM`;
                         }
                     }
                 }
+            },
+            scales: {
+                x: {
+                    type: 'linear',
+                    title: {
+                        display: true,
+                        text: 'Time (seconds)',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    },
+                    grid: {
+                        display: true,
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return value.toFixed(2) + 's';
+                        }
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Dimension (MM)',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    },
+                    grid: {
+                        display: true,
+                        color: function(context) {
+                            if (context.tick.value === 0) {
+                                return 'rgba(0, 0, 0, 0.5)';
+                            }
+                            return 'rgba(0, 0, 0, 0.1)';
+                        },
+                        lineWidth: function(context) {
+                            if (context.tick.value === 0) {
+                                return 2;
+                            }
+                            return 1;
+                        }
+                    }
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
             }
-        });
+        }
+    });
+
+    // Show lines by enabling showLine for each dataset
+    this.chart.data.datasets.forEach(dataset => {
+        dataset.showLine = true;
+    });
+    this.chart.update();
+}
+
+    async exportChart() {
+        if (!this.chart) return;
+
+        try {
+            const canvas = this.chartRef.el;
+            const dataURL = canvas.toDataURL('image/png');
+
+            const link = document.createElement('a');
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            link.download = `cycle_chart_${timestamp}.png`;
+            link.href = dataURL;
+            link.click();
+
+            this.notification.add('Chart exported successfully', {
+                type: 'success',
+            });
+        } catch (error) {
+            this.notification.add('Error exporting chart', {
+                type: 'danger',
+            });
+            console.error('Export error:', error);
+        }
+    }
+
+    async exportData() {
+        const chartData = this.props.record.data[this.props.name];
+
+        if (!chartData) {
+            this.notification.add('No data to export', {
+                type: 'warning',
+            });
+            return;
+        }
+
+        try {
+            const data = JSON.parse(chartData);
+            let csv = 'Type,Degree,Value (MM)\n';
+
+            data.actual.forEach(point => {
+                csv += `Actual,${point.degree},${point.value}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            link.download = `cycle_data_${timestamp}.csv`;
+            link.href = url;
+            link.click();
+            window.URL.revokeObjectURL(url);
+
+            this.notification.add('Data exported successfully', {
+                type: 'success',
+            });
+        } catch (error) {
+            this.notification.add('Error exporting data', {
+                type: 'danger',
+            });
+            console.error('Export error:', error);
+        }
     }
 }
 
