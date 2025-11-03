@@ -1,5 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+
+    <record id="action_toggle_live_generation" model="ir.actions.server">
+        <field name="name">Toggle Live Generation</field>
+        <field name="model_id" ref="model_vibration_dashboard"/>
+        <field name="state">code</field>
+        <field name="code">
+if records.selected_frequency:
+    monitor = env['vibration.monitor'].search([
+        ('frequency_variant', '=', records.selected_frequency)
+    ], limit=1)
+
+    if monitor:
+        # Toggle the is_live state
+        monitor.write({'is_live': not monitor.is_live})
+
+        action = {
+            'type': 'ir.actions.client',
+            'tag': 'reload',
+        }
+    else:
+        action = {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'message': 'No monitor found for selected frequency',
+                'type': 'warning',
+                'sticky': False,
+            }
+        }
+else:
+    action = {
+        'type': 'ir.actions.client',
+        'tag': 'display_notification',
+        'params': {
+            'message': 'Please select a frequency first',
+            'type': 'warning',
+            'sticky': False,
+        }
+    }
+        </field>
+    </record>
     <!-- Actions to select each frequency -->
     <record id="action_select_2hz" model="ir.actions.server">
         <field name="name">Select 2Hz</field>
@@ -95,18 +136,34 @@ records.write({'selected_frequency': '7hz'})
         </field>
     </record>
 
+
     <!-- Dashboard Form View -->
     <record id="view_vibration_dashboard_form" model="ir.ui.view">
         <field name="name">vibration.dashboard.form</field>
         <field name="model">vibration.dashboard</field>
         <field name="arch" type="xml">
-            <form string="Vibration Testing Machine Dashboard" create="false" delete="false">
+            <!-- ADD js_class HERE -->
+            <form string="Vibration Testing Machine Dashboard" create="false" delete="false" js_class="vibration_dashboard_live">
                 <header>
+                    <button name="action_toggle_live_generation"
+                            string="Trace"
+                            type="object"
+                            class="btn btn-sm btn-success"
+                            invisible="not selected_frequency or is_live_running"
+                            icon="fa-play"/>
+
+                    <button name="action_toggle_live_generation"
+                            string="Stop Tracing"
+                            type="object"
+                            class="btn btn-sm btn-danger"
+                            invisible="not selected_frequency or not is_live_running"
+                            icon="fa-stop"/>
                     <button name="action_refresh_dashboard"
                             string="Refresh Dashboard"
                             type="object"
                             class="btn-primary"
-                            icon="fa-refresh"/>
+                            icon="fa-refresh"
+                            invisible="1"/>
                 </header>
                 <sheet>
                     <div class="row">
@@ -183,36 +240,29 @@ records.write({'selected_frequency': '7hz'})
 
                     <div class="row mt-4" invisible="not selected_frequency">
                         <div class="col-12">
-                            <div class="alert alert-info d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>Selected Frequency: </strong>
-                                    <field name="selected_frequency" readonly="1" class="fw-bold"/>
-                                </div>
-                                <button name="action_clear_selection"
-                                        string="Clear Selection"
-                                        type="object"
-                                        class="btn btn-sm btn-secondary"
-                                        icon="fa-times"/>
-                            </div>
+<!--                            <div class="alert alert-info d-flex justify-content-between align-items-center">-->
+<!--&lt;!&ndash;                                <div>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <strong>Selected Frequency: </strong>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <field name="selected_frequency" readonly="1" class="fw-bold"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </div>&ndash;&gt;-->
+<!--                                <button name="action_clear_selection"-->
+<!--                                        string="Clear Selection"-->
+<!--                                        type="object"-->
+<!--                                        class="btn btn-sm btn-secondary"-->
+<!--                                        icon="fa-times"/>-->
+<!--                            </div>-->
                         </div>
                     </div>
 
                     <div class="row mt-3" invisible="not selected_frequency">
                         <div>
                             <div class="card h-100">
-                                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                                    <h5 class="mb-0">
-                                        <i class="fa fa-line-chart"/> Live Chart - Dimension vs Time
-                                    </h5>
-<!--                                    <div class="btn-group" role="group">-->
-<!--                                        <button class="btn btn-sm btn-light" onclick="this.closest('.card-body').querySelector('canvas').toBlob(b => {const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'chart.png'; a.click();});" title="Export Chart as Image">-->
-<!--                                            <i class="fa fa-picture-o"/> Chart-->
-<!--                                        </button>-->
-<!--                                        <button class="btn btn-sm btn-light" title="Export Data as CSV">-->
-<!--                                            <i class="fa fa-download"/> Data-->
-<!--                                        </button>-->
-<!--                                    </div>-->
-                                </div>
+<!--                                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">-->
+<!--                                    <h5 class="mb-0">-->
+<!--                                        <i class="fa fa-line-chart"/> Live Cumulative Chart-->
+<!--                                    </h5>-->
+<!--                                    <span class="badge bg-success">Auto-refresh: 2s</span>-->
+<!--                                </div>-->
                                 <div class="card-body">
                                     <field name="frequency_value" invisible="1"/>
                                     <field name="chart_data" widget="vibration_live_chart" nolabel="1"/>
@@ -223,7 +273,7 @@ records.write({'selected_frequency': '7hz'})
                             <div class="card h-100">
                                 <div class="card-header bg-secondary text-white">
                                     <h5 class="mb-0">
-                                        <i class="fa fa-table"/> Data Logs
+                                        <i class="fa fa-table"/> Data Logs (All Records)
                                     </h5>
                                 </div>
                                 <div class="card-body" style="max-height: 600px; overflow-y: auto;">

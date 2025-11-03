@@ -199,6 +199,43 @@ class VibrationMonitor(models.Model):
         else:
             return self.action_connect_plc()
 
+    def action_start_live_mode(self):
+        """Start live generation mode"""
+        self.ensure_one()
+        # Clear old data
+        self.env['vibration.data.log'].search([('monitor_id', '=', self.id)]).unlink()
+        self.env['vibration.cycle.data'].search([('monitor_id', '=', self.id)]).unlink()
+
+        self.write({
+            'is_live': True,
+            'total_records_generated': 0
+        })
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'message': '▶ Live generation started! Watch the chart flow...',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
+
+    def action_stop_live_mode(self):
+        """Stop live generation mode"""
+        self.ensure_one()
+        self.write({'is_live': False})
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'message': '⏹ Live generation stopped',
+                'type': 'info',
+                'sticky': False,
+            }
+        }
+
     data_log_count = fields.Integer(string='Data Log Count', compute='_compute_data_log_count')
     cycle_data_count = fields.Integer(string='Cycle Count', compute='_compute_cycle_data_count')
 
@@ -235,6 +272,93 @@ class VibrationMonitor(models.Model):
             'domain': [('monitor_id', '=', self.id)],
             'context': {'default_monitor_id': self.id},
             'target': 'current',
+        }
+
+    # Add to VibrationMonitor class
+    is_live = fields.Boolean(string='Live Mode Active', default=False)
+    total_records_generated = fields.Integer(string='Total Records', default=0, readonly=True)
+
+    def action_generate_next_record(self):
+        """Generate one second of data (called repeatedly in live mode)"""
+        self.ensure_one()
+
+        if not self.is_live:
+            return {'success': False}
+
+        amplitude_map = {
+            '2hz': 50, '3hz': 25, '5hz': 12.5, '7hz': 8.3
+        }
+        max_amplitude = amplitude_map.get(self.frequency_variant, 50)
+        sample_degrees = self._get_sample_points_for_cycle()
+        num_cycles = int(self.frequency_value)
+
+        # Get current record number
+        current_record_num = self.total_records_generated + 1
+
+        start_time = datetime.now()
+        total_duration = 1.0
+        cycle_duration = total_duration / num_cycles
+
+        all_data_points = []
+
+        # Generate data for all cycles in this 1 second
+        for cycle in range(num_cycles):
+            cycle_start_time_offset = cycle * cycle_duration
+
+            for i, degree in enumerate(sample_degrees):
+                time_offset_in_cycle = (i / (len(sample_degrees) - 1)) * cycle_duration
+                time_in_second = cycle_start_time_offset + time_offset_in_cycle
+                timestamp = start_time + timedelta(seconds=time_in_second)
+
+                planned_value = self._calculate_displacement(degree, max_amplitude)
+                import random
+                actual_value = planned_value * random.uniform(0.95, 1.05)
+
+                all_data_points.append({
+                    'cycle': cycle + 1,
+                    'degree': degree,
+                    'time': time_in_second,
+                    'planned': planned_value,
+                    'actual': actual_value
+                })
+
+                # Create data log
+                self.env['vibration.data.log'].create({
+                    'monitor_id': self.id,
+                    'cycle_number': current_record_num,
+                    'sub_cycle_number': cycle + 1,
+                    'degree': degree,
+                    'dimension': round(planned_value, 2),
+                    'amplitude': round(actual_value, 2),
+                    'timestamp': timestamp,
+                    'time_in_cycle': round(time_offset_in_cycle, 4),
+                    'time_actual': round(time_in_second, 4),
+                })
+
+        # Create cycle data record
+        cycle_data = {
+            'monitor_id': self.id,
+            'cycle_number': current_record_num,
+            'timestamp': start_time,
+            'all_data_points': json.dumps(all_data_points)
+        }
+
+        # Add first cycle data to fields
+        for i, degree in enumerate(sample_degrees):
+            first_cycle_point = all_data_points[i]
+            cycle_data[f'degree_{degree}_planned'] = round(first_cycle_point['planned'], 2)
+            cycle_data[f'degree_{degree}_actual'] = round(first_cycle_point['actual'], 2)
+            cycle_data[f'degree_{degree}_planned_time'] = round(first_cycle_point['time'], 4)
+            cycle_data[f'degree_{degree}_actual_time'] = round(first_cycle_point['time'], 4)
+
+        self.env['vibration.cycle.data'].create(cycle_data)
+
+        # Update counter
+        self.write({'total_records_generated': current_record_num})
+
+        return {
+            'success': True,
+            'total_records': current_record_num
         }
 
 

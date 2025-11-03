@@ -10,11 +10,13 @@
         'security/ir.model.access.csv',
         'views/vibration_monitor_views.xml',
         'views/dashboard_views.xml',
+        # 'views/live2.xml',
+        'views/live_view.xml',
+        # 'views/test.xml',
         # 'views/menu_views.xml',
     ],
     'assets': {
         'web.assets_backend': [
-            ('include', 'web._assets_helpers'),
             'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
             'pipes_hoses_new/static/src/js/vibration_chart.js',
             'pipes_hoses_new/static/src/xml/vibration_chart.xml',
@@ -22,7 +24,9 @@
             'pipes_hoses_new/static/src/xml/dashboard_chart.xml',
             'pipes_hoses_new/static/src/js/cycle_chart.js',
             'pipes_hoses_new/static/src/xml/cycle_chart.xml',
-            'pipes_hoses_new/static/src/js/dash.js'
+            'pipes_hoses_new/static/src/js/live_controller.js',
+            # 'pipes_hoses_new/static/src/css/dashboard.css',
+            'https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js',
         ],
     },
     'installable': True,

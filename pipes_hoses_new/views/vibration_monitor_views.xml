@@ -149,7 +149,8 @@
                     <button name="action_generate_simulated_data"
                             string="Trace"
                             type="object"
-                            class="btn-success"/>
+                            class="btn-success"
+                            invisible="1"/>
 <!--                    <button name="action_connect_plc"-->
 <!--                            string="Connect PLC"-->
 <!--                            type="object"-->
@@ -243,44 +244,118 @@
     </record>
 
     <!-- Action for 2Hz - Now opens Monitor Form first -->
-    <record id="action_vibration_monitor_2hz" model="ir.actions.act_window">
-        <field name="name">2Hz Monitor</field>
-        <field name="res_model">vibration.monitor</field>
-        <field name="view_mode">form</field>
-        <field name="domain">[('frequency_variant', '=', '2hz')]</field>
-        <field name="context">{'default_frequency_variant': '2hz'}</field>
-        <field name="target">current</field>
+<!--    <record id="action_vibration_monitor_2hz" model="ir.actions.act_window">-->
+<!--        <field name="name">2Hz Monitor</field>-->
+<!--        <field name="res_model">vibration.monitor</field>-->
+<!--        <field name="view_mode">form</field>-->
+<!--        <field name="domain">[('frequency_variant', '=', '2hz')]</field>-->
+<!--        <field name="context">{'default_frequency_variant': '2hz', 'create': False}</field>-->
+<!--        <field name="res_id" eval="ref('pipes_hoses_new.vibration_monitor_2hz_record')"/>-->
+<!--        <field name="target">current</field>-->
+<!--    </record>-->
+
+<!--    &lt;!&ndash; Action for 3Hz - Now opens Monitor Form first &ndash;&gt;-->
+<!--    <record id="action_vibration_monitor_3hz" model="ir.actions.act_window">-->
+<!--        <field name="name">3Hz Monitor</field>-->
+<!--        <field name="res_model">vibration.monitor</field>-->
+<!--        <field name="view_mode">form</field>-->
+<!--        <field name="domain">[('frequency_variant', '=', '3hz')]</field>-->
+<!--        <field name="context">{'default_frequency_variant': '3hz'}</field>-->
+<!--        <field name="target">current</field>-->
+<!--    </record>-->
+
+<!--    &lt;!&ndash; Action for 5Hz - Now opens Monitor Form first &ndash;&gt;-->
+<!--    <record id="action_vibration_monitor_5hz" model="ir.actions.act_window">-->
+<!--        <field name="name">5Hz Monitor</field>-->
+<!--        <field name="res_model">vibration.monitor</field>-->
+<!--        <field name="view_mode">form</field>-->
+<!--        <field name="domain">[('frequency_variant', '=', '5hz')]</field>-->
+<!--        <field name="context">{'default_frequency_variant': '5hz'}</field>-->
+<!--        <field name="target">current</field>-->
+<!--    </record>-->
+
+<!--    &lt;!&ndash; Action for 7Hz - Now opens Monitor Form first &ndash;&gt;-->
+<!--    <record id="action_vibration_monitor_7hz" model="ir.actions.act_window">-->
+<!--        <field name="name">7Hz Monitor</field>-->
+<!--        <field name="res_model">vibration.monitor</field>-->
+<!--        <field name="view_mode">form</field>-->
+<!--        <field name="domain">[('frequency_variant', '=', '7hz')]</field>-->
+<!--        <field name="context">{'default_frequency_variant': '7hz'}</field>-->
+<!--        <field name="target">current</field>-->
+<!--    </record>-->
+
+    <record id="action_open_2hz_monitor" model="ir.actions.server">
+        <field name="name">Open 2Hz Monitor</field>
+        <field name="model_id" ref="model_vibration_monitor"/>
+        <field name="state">code</field>
+        <field name="code">
+monitor = env['vibration.monitor'].search([('frequency_variant', '=', '2hz')], limit=1)
+if not monitor:
+    monitor = env['vibration.monitor'].create({'frequency_variant': '2hz'})
+action = {
+    'type': 'ir.actions.act_window',
+    'res_model': 'vibration.monitor',
+    'res_id': monitor.id,
+    'view_mode': 'form',
+    'target': 'current',
+}
+        </field>
     </record>
 
-    <!-- Action for 3Hz - Now opens Monitor Form first -->
-    <record id="action_vibration_monitor_3hz" model="ir.actions.act_window">
-        <field name="name">3Hz Monitor</field>
-        <field name="res_model">vibration.monitor</field>
-        <field name="view_mode">form</field>
-        <field name="domain">[('frequency_variant', '=', '3hz')]</field>
-        <field name="context">{'default_frequency_variant': '3hz'}</field>
-        <field name="target">current</field>
+    <record id="action_open_3hz_monitor" model="ir.actions.server">
+        <field name="name">Open 3Hz Monitor</field>
+        <field name="model_id" ref="model_vibration_monitor"/>
+        <field name="state">code</field>
+        <field name="code">
+monitor = env['vibration.monitor'].search([('frequency_variant', '=', '3hz')], limit=1)
+if not monitor:
+    monitor = env['vibration.monitor'].create({'frequency_variant': '3hz'})
+action = {
+    'type': 'ir.actions.act_window',
+    'res_model': 'vibration.monitor',
+    'res_id': monitor.id,
+    'view_mode': 'form',
+    'target': 'current',
+}
+        </field>
     </record>
 
-    <!-- Action for 5Hz - Now opens Monitor Form first -->
-    <record id="action_vibration_monitor_5hz" model="ir.actions.act_window">
-        <field name="name">5Hz Monitor</field>
-        <field name="res_model">vibration.monitor</field>
-        <field name="view_mode">form</field>
-        <field name="domain">[('frequency_variant', '=', '5hz')]</field>
-        <field name="context">{'default_frequency_variant': '5hz'}</field>
-        <field name="target">current</field>
+    <record id="action_open_5hz_monitor" model="ir.actions.server">
+        <field name="name">Open 5Hz Monitor</field>
+        <field name="model_id" ref="model_vibration_monitor"/>
+        <field name="state">code</field>
+        <field name="code">
+monitor = env['vibration.monitor'].search([('frequency_variant', '=', '5hz')], limit=1)
+if not monitor:
+    monitor = env['vibration.monitor'].create({'frequency_variant': '5hz'})
+action = {
+    'type': 'ir.actions.act_window',
+    'res_model': 'vibration.monitor',
+    'res_id': monitor.id,
+    'view_mode': 'form',
+    'target': 'current',
+}
+        </field>
     </record>
 
-    <!-- Action for 7Hz - Now opens Monitor Form first -->
-    <record id="action_vibration_monitor_7hz" model="ir.actions.act_window">
-        <field name="name">7Hz Monitor</field>
-        <field name="res_model">vibration.monitor</field>
-        <field name="view_mode">form</field>
-        <field name="domain">[('frequency_variant', '=', '7hz')]</field>
-        <field name="context">{'default_frequency_variant': '7hz'}</field>
-        <field name="target">current</field>
+    <record id="action_open_7hz_monitor" model="ir.actions.server">
+        <field name="name">Open 7Hz Monitor</field>
+        <field name="model_id" ref="model_vibration_monitor"/>
+        <field name="state">code</field>
+        <field name="code">
+monitor = env['vibration.monitor'].search([('frequency_variant', '=', '7hz')], limit=1)
+if not monitor:
+    monitor = env['vibration.monitor'].create({'frequency_variant': '7hz'})
+action = {
+    'type': 'ir.actions.act_window',
+    'res_model': 'vibration.monitor',
+    'res_id': monitor.id,
+    'view_mode': 'form',
+    'target': 'current',
+}
+        </field>
     </record>
+
 
     <!-- Dashboard Action -->
     <record id="action_vibration_dashboard" model="ir.actions.act_window">
@@ -299,12 +374,12 @@
 
     <menuitem id="menu_vibration_dashboard" name="Dashboard" parent="menu_vibration_root" action="action_vibration_dashboard" sequence="5"/>
 
-    <menuitem id="menu_vibration_2hz" name="2Hz" parent="menu_vibration_root" action="action_vibration_monitor_2hz" sequence="10"/>
+    <menuitem id="menu_vibration_2hz" name="2Hz" parent="menu_vibration_root" action="action_open_2hz_monitor" sequence="10"/>
 
-    <menuitem id="menu_vibration_3hz" name="3Hz" parent="menu_vibration_root" action="action_vibration_monitor_3hz" sequence="20"/>
+    <menuitem id="menu_vibration_3hz" name="3Hz" parent="menu_vibration_root" action="action_open_3hz_monitor" sequence="20"/>
 
-    <menuitem id="menu_vibration_5hz" name="5Hz" parent="menu_vibration_root" action="action_vibration_monitor_5hz" sequence="30"/>
+    <menuitem id="menu_vibration_5hz" name="5Hz" parent="menu_vibration_root" action="action_open_5hz_monitor" sequence="30"/>
 
-    <menuitem id="menu_vibration_7hz" name="7Hz" parent="menu_vibration_root" action="action_vibration_monitor_7hz" sequence="40"/>
+    <menuitem id="menu_vibration_7hz" name="7Hz" parent="menu_vibration_root" action="action_open_7hz_monitor" sequence="40"/>
 
 </odoo>

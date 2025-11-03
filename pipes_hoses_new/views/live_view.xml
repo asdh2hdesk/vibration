@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Add Live Toggle Button to Monitor Form -->
+    <record id="view_vibration_monitor_form_live" model="ir.ui.view">
+        <field name="name">vibration.monitor.form.live</field>
+        <field name="model">vibration.monitor</field>
+        <field name="inherit_id" ref="pipes_hoses_new.view_vibration_monitor_form"/>
+        <field name="arch" type="xml">
+            <!-- Change the form js_class -->
+            <xpath expr="//form" position="attributes">
+                <attribute name="js_class">vibration_monitor_live</attribute>
+            </xpath>
+
+            <!-- Add Live Mode button -->
+            <xpath expr="//header/button[@name='action_generate_simulated_data']" position="after">
+                <field name="is_live" invisible="1"/>
+<!--                <field name="live_generation_active" invisible="1"/>-->
+
+                <button name="action_toggle_live_mode"
+                        string="Start Tracing"
+                        type="object"
+                        class="btn-success"
+                        invisible="is_live"
+                        help="Start continuous data generation (1 record per second)"/>
+
+                <button name="action_toggle_live_mode"
+                        string="Stop Tracing"
+                        type="object"
+                        class="btn-danger"
+                        invisible="not is_live"
+                        help="Stop live data generation"/>
+
+<!--                <span class="badge bg-danger ms-2" invisible="not is_live">-->
+<!--                    <i class="fa fa-circle"/> LIVE RECORDING-->
+<!--                </span>-->
+            </xpath>
+
+            <!-- Add counter and status -->
+            <xpath expr="//field[@name='movement_cycles']" position="after">
+                <field name="total_records_generated"
+                       readonly="1"
+                       string="Total Records Generated"
+                       decoration-success="total_records_generated &gt; 0"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Update Dashboard to show live status -->
+    <record id="view_vibration_dashboard_form_live" model="ir.ui.view">
+        <field name="name">vibration.dashboard.form.live</field>
+        <field name="model">vibration.dashboard</field>
+        <field name="inherit_id" ref="pipes_hoses_new.view_vibration_dashboard_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="js_class">vibration_dashboard_live</attribute>
+            </xpath>
+
+<!--            <xpath expr="//button[@name='action_refresh_dashboard']" position="replace">-->
+<!--                <field name="is_any_monitor_live" invisible="1"/>-->
+
+<!--&lt;!&ndash;                <button name="action_refresh_dashboard"&ndash;&gt;-->
+<!--&lt;!&ndash;                        string="Refresh"&ndash;&gt;-->
+<!--&lt;!&ndash;                        type="object"&ndash;&gt;-->
+<!--&lt;!&ndash;                        class="btn-primary"&ndash;&gt;-->
+<!--&lt;!&ndash;                        icon="fa-refresh"&ndash;&gt;-->
+<!--&lt;!&ndash;                        help="Dashboard auto-refreshes every 2 seconds"/>&ndash;&gt;-->
+
+<!--                <span class="badge bg-success ms-2" invisible="not is_any_monitor_live">-->
+<!--                    <i class="fa fa-circle blink"/> AUTO-REFRESH ACTIVE-->
+<!--                </span>-->
+<!--            </xpath>-->
+
+<!--            &lt;!&ndash; Add live indicator in chart header &ndash;&gt;-->
+<!--            <xpath expr="//div[hasclass('card-header', 'bg-primary')]//span[hasclass('badge')]" position="replace">-->
+<!--                <span class="badge bg-success" invisible="not is_any_monitor_live">-->
+<!--                    <i class="fa fa-circle"/> Live Data-->
+<!--                </span>-->
+<!--                <span class="badge bg-secondary" invisible="is_any_monitor_live">-->
+<!--                    Static View-->
+<!--                </span>-->
+<!--            </xpath>-->
+        </field>
+    </record>
+
+    <!-- Add CSS for blinking effect -->
+<!--    <template id="assets_backend" inherit_id="web.assets_backend">-->
+<!--        <xpath expr="." position="inside">-->
+<!--            <style>-->
+<!--                @keyframes blink {-->
+<!--                    0%, 50% { opacity: 1; }-->
+<!--                    51%, 100% { opacity: 0.3; }-->
+<!--                }-->
+
+<!--                .blink {-->
+<!--                    animation: blink 1s infinite;-->
+<!--                }-->
+
+<!--                .badge.bg-danger i.fa-circle,-->
+<!--                .badge.bg-success i.fa-circle {-->
+<!--                    animation: blink 1.5s infinite;-->
+<!--                }-->
+<!--            </style>-->
+<!--        </xpath>-->
+<!--    </template>-->
+</odoo>
